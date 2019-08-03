@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29025.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SauronEye", "SauronEye\SauronEye.csproj", "{0F43043D-8957-4ADE-A0F4-25C1122E8118}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0F43043D-8957-4ADE-A0F4-25C1122E8118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F43043D-8957-4ADE-A0F4-25C1122E8118}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F43043D-8957-4ADE-A0F4-25C1122E8118}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F43043D-8957-4ADE-A0F4-25C1122E8118}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0E352406-20D6-43AA-94A8-DB510C9F009C}
+	EndGlobalSection
+EndGlobal
