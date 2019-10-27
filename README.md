@@ -2,7 +2,7 @@
 SauronEye is a search tool built to aid red teams in finding files containing specific keywords. 
 
 **Features**:
-- Search mulitple (network) drives
+- Search multiple (network) drives
 - Search contents of files
 - Search contents of Microsoft Office files (`.doc`, `.docx`, `.xls`, `.xlsx`)
 - Search multiple drives multi-threaded for increased performance
