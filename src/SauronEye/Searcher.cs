@@ -3,52 +3,59 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using EPocalipse.IFilter;
 
 namespace SauronEye {
+
+    /* 
+     *  FSSearcher searches the input directories for files qualifying for the input filters. 
+     *  Not implemented to run in parallel, since this will likely only decrease performance (increases HDD needle changes).
+     */
     class FSSearcher {
 
-        private static List<string> Directories;
-        private static List<string> Filetypes;
-        private static List<string> Keywords;
-        private static List<string> Results;
-        private static bool searchContents;
+        private string SearchDirectory;
+        private List<string> Filetypes;
+        private List<string> Keywords;
+        private List<string> Results;
+        private bool searchContents;
+        private bool SystemDirs;
         private const int MAX_PATH = 260;
-       
+        private IEnumerable<string> FilesFilteredOnExtension;
 
-
-        public FSSearcher(List<string> d, List<string> f, List<string> k, bool s) {
-            Directories = d;
-            Filetypes = f;
-            Keywords = k;
-            Results = new List<string>();
-            searchContents = s;
+        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs) {
+            this.SearchDirectory = d;
+            this.Filetypes = f;
+            this.Keywords = k;
+            this.Results = new List<string>();
+            this.searchContents = s;
+            this.SystemDirs = systemdirs;
         }
 
-        public void Search() {
-            foreach (string dir in Directories) {
-                if (!Directory.Exists(dir)) {
-                    continue;
-                }
-                Console.WriteLine("Searching dir: " + dir);
-                DirectoryInfo dirInfo = new DirectoryInfo(dir);
 
-                IEnumerable<string> filteredOnExtension =  EnumerateFiles(dir, "*.*", SearchOption.AllDirectories);
-                foreach (string filepath in filteredOnExtension) {
-                    if (ContainsKeyword(Path.GetFileName(filepath))) {
-                        Results.Add(filepath);
+        public void Search() {
+                if (Directory.Exists(SearchDirectory)) {
+                    //Console.WriteLine("Searching dir: " + SearchDirectory);
+                    DirectoryInfo dirInfo = new DirectoryInfo(SearchDirectory);
+
+                    FilesFilteredOnExtension = EnumerateFiles(SearchDirectory, "*.*", SearchOption.AllDirectories);
+                    foreach (string filepath in FilesFilteredOnExtension) {
+                        if (ContainsKeyword(Path.GetFileName(filepath))) {
+                            Results.Add(filepath);
+                        }
                     }
-                }
-                foreach (string i in Results) {
-                    Console.WriteLine(i);
-                }
-                if (searchContents) {
-                    Console.WriteLine("[!] Done searching file system, now searching contents");
-                    ContentsSearcher s = new ContentsSearcher(filteredOnExtension, Keywords);
-                    s.Search();
-                } 
+                    foreach (string i in Results) {
+                        Console.WriteLine("[+] {0}", i);
+                    }
+
+                    // Now search contents
+                    if (searchContents) {
+                        Console.WriteLine("[*] Done searching file system, now searching contents");
+                        ContentsSearcher s = new ContentsSearcher(FilesFilteredOnExtension, Keywords);
+                        s.Search();
+                    }
             }
-            return;
         }
 
         IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOpt) {
@@ -59,11 +66,10 @@ namespace SauronEye {
                                             .SelectMany(x => EnumerateFiles(x, searchPattern, searchOpt)
                                             .Where(fi => EndsWithExtension(fi) && IsFolderValid(fi))
                                         );
-                                        
+
                 }
                 return dirFiles.Concat(Directory.EnumerateFiles(path, searchPattern));
             } catch (UnauthorizedAccessException ex) {
-                //Console.WriteLine("[-] Cannot access: " + path);
                 return Enumerable.Empty<string>();
             }
         }
@@ -77,8 +83,11 @@ namespace SauronEye {
             return false;
         }
 
-        // Returns true iff path is not %WINDIR% or %APPDATA%
+        // Returns true iff path is not %WINDIR% or %APPDATA% or not Program Files when SystemDir is False.
         private bool IsFolderValid(string p) {
+            if (!SystemDirs && p.Contains(":\\Program Files")) {
+                return false;
+            }
             return (p.Contains(":\\Windows") || (p.Contains(":\\Users") && p.Contains("\\AppData"))) == false;
         }
 
@@ -90,8 +99,6 @@ namespace SauronEye {
             }
             return false;
         }
-
-
     }
 
 
@@ -108,8 +115,9 @@ namespace SauronEye {
             Keywords = k;
         }
 
+        // Searches the contents of filtered files. Does not care about exceptions.
         public void Search() {
-            foreach(string dir in Directories) {
+            foreach (String dir in Directories) { 
                 FileInfo fi = new FileInfo(dir);
                 string fileContents;
                 if (fi.Length < MAX_FILE_SIZE) {
@@ -124,11 +132,10 @@ namespace SauronEye {
                         try {
                             CheckForKeywords(File.ReadAllText(fi.FullName), fi);
                         } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fi.FullName); }
-                        
+
                     }
                 } else {
                     Console.WriteLine("[-] File exceeds 1MB file size {0}", fi.FullName);
-                    continue;
                 }
             }
         }
@@ -139,7 +146,7 @@ namespace SauronEye {
                 // Office docs are weird, do not contains newlines when extracted.
                 var found = HasKeywordInLargeString(contents);
                 if (!found.Equals("")) {
-                    Console.WriteLine("[+] {0}: \n {1}", fi.FullName, found);
+                    Console.WriteLine("[+] {0}: \n\t {1}\n", fi.FullName, found);
                 }
             } catch (Exception e) {
                 Console.WriteLine("[!] The {0} could not be read.", fi.FullName);
@@ -153,10 +160,11 @@ namespace SauronEye {
             for (int i = 0; i < splitted.Length; i++) {
                 if (ContainsAny(splitted[i].ToLower())) {
                     if (i + 2 <= splitted.Length) {
-                        res = string.Join(" ", splitted, i - 2, 5);
+                        res = Regex.Replace(string.Join(" ", splitted, i - 2, 5), @"\t|\n|\r", " "); 
                         //res = splitted[i - 2] + splitted[i - 1] + splitted[i] + splitted[i + 1] + splitted[i + 2];
                     } else {
-                        res = string.Join(" ", splitted, i - 2, i) + string.Join(" ", splitted.Skip(i));
+                        // this is ugly: res = "two words + keyword + two words" minus newlines because that is ugly.
+                        res = Regex.Replace(string.Join(" ", splitted, i - 2, i) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ");
                     }
                 }
             }

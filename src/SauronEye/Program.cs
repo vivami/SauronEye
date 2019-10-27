@@ -6,41 +6,45 @@ using System.Text;
 using System.Text.RegularExpressions;
 using EPocalipse.IFilter;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace SauronEye {
     class Program {
 
-        private static List<string> Directories;
-        private static List<string> FileTypes;
-        private static List<string> Keywords;
-        private static bool SearchContents; 
+        private static List<string> Directories, FileTypes, Keywords;
+        private static bool SearchContents;
+        private static bool SystemDirs;
         static void Main(string[] args) {
             Console.WriteLine("\n\t === SauronEye === \n");
             Directories = new List<string>();
             FileTypes = new List<string>();
             Keywords = new List<string>();
             SearchContents = false;
+            SystemDirs = false;
             parseArguments(args);
             Console.WriteLine("Directories to search: " + string.Join(", ", Directories));
             Console.WriteLine("For file types:" + string.Join(", ", FileTypes));
             Console.WriteLine("Containing:" + string.Join(", ", Keywords));
             Console.WriteLine("Search contents: " + SearchContents.ToString());
+            Console.WriteLine("Search Program Files directories: " + SystemDirs.ToString() + "\n");
             Stopwatch sw = new Stopwatch();
 
             sw.Start();
 
-            FSSearcher s = new FSSearcher(Directories, FileTypes, Keywords, SearchContents);
-            s.Search();
-
+            var options = new ParallelOptions { MaxDegreeOfParallelism = Directories.Count };
+            Parallel.ForEach(Directories, options, (dir) => {
+                Console.WriteLine("Searching in parallel: " + dir);
+                var s = new FSSearcher(dir, FileTypes, Keywords, SearchContents, SystemDirs);
+                s.Search();
+                        
+            });
             sw.Stop();
 
-            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+            Console.WriteLine("\n Time elapsed = {0}", sw.Elapsed);
 
-           
-
-            Console.WriteLine("Done");
-            //Console.ReadKey();
+            if (Debugger.IsAttached)
+                Console.ReadKey();
         }
 
 
@@ -78,6 +82,11 @@ namespace SauronEye {
                                 SearchContents = true;
                                 arg++;
                             } break;
+                        case "-systemdirs": {
+                                SystemDirs = true;
+                                arg++;
+                            }
+                            break;
                         default:
                             // unknown arg, proceed to next
                             arg++;
@@ -103,6 +112,14 @@ namespace SauronEye {
         private static string[] strimAndSplit(string s) {
             return Regex.Replace(s, " *, *", ",").Split(',');
         }
+
+        private static ConcurrentBag<string> ConverToConcurrentBag(List<string> list) {
+            var cbag = new ConcurrentBag<string>();
+            foreach (string i in list) {
+                cbag.Add(i);
+            }
+            return cbag;
+        } 
     }
 
 
