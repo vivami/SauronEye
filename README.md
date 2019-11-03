@@ -6,6 +6,7 @@ SauronEye is a search tool built to aid red teams in finding files containing sp
 - Search contents of files
 - Search contents of Microsoft Office files (`.doc`, `.docx`, `.xls`, `.xlsx`)
 - Search multiple drives multi-threaded for increased performance
+- Supports regular expressions in search keywords
 - Compatible with Cobalt Strike's `execute-assembly`
 
 It's also quite fast, can do 50k files, totaling 1,3 TB on a network drive in under a minute (with realistic file filters). Searches a `C:\` (on a cheap SATA SSD) in about 15 seconds.
@@ -13,26 +14,34 @@ It's also quite fast, can do 50k files, totaling 1,3 TB on a network drive in un
 
 ### Usage
 
-`SauronEye.exe -Dirs C:\, \\SOMENETWORKDRIVE\C$ -FileTypes .txt,.bat,.docx, .conf -Contents -Keywords password,pass -SystemDirs` 
+`SauronEye.exe -Dirs C:\, \\SOMENETWORKDRIVE\C$ -FileTypes .txt,.bat,.docx, .conf -Contents -Keywords password,pass* -SystemDirs` 
 
 ```
-C:\>SauronEye.exe -Dirs C:\, -FileTypes .docx -Contents -Keywords password
+C:\>SauronEye.exe -Dirs C:\Users\vincent\Desktop\ -Keywords wacht*, pass* -Filetypes .txt, .doc, .docx, .xls -Contents
 
-         === SauronEye ===
+	=== SauronEye ===
 
-Directories to search: c:\
-For file types:.docx
-Containing:password
+Directories to search: c:\users\vincent\desktop\
+For file types: .txt, .doc, .docx, .xls
+Containing: wacht*, pass*
 Search contents: True
-Searching dir: c:\
+Search Program Files directories: False
 
-[!] Done searching file system, now searching contents
-[+] c:\Users\vincent\Desktop\test.docx:
-  this is a  testPassword = "welcome123"
+Searching in parallel: c:\users\vincent\desktop\
+[+] c:\users\vincent\desktop\test\wachtwoord - Copy (2).txt
+[+] c:\users\vincent\desktop\test\wachtwoord - Copy (3).txt
+[+] c:\users\vincent\desktop\test\wachtwoord - Copy.txt
+[+] c:\users\vincent\desktop\test\wachtwoord.txt
+[+] c:\users\vincent\desktop\pass.pdf
+[+] c:\users\vincent\desktop\pass.txt
+[+] c:\users\vincent\desktop\pass.xls
+[*] Done searching file system, now searching contents
 
-Time elapsed=00:00:06.4837851
+[+] c:\users\vincent\desktop\test.docx:
+         is a testPassword = "Welcome123"
 
 
+ Done. Time elapsed = 00:00:00.3114729
 ```
 
 ### Notes

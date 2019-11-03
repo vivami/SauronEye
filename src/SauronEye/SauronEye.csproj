@@ -49,6 +49,7 @@
     <Compile Include="IFilter\IFilter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegexSearch.cs" />
     <Compile Include="Searcher.cs" />
   </ItemGroup>
   <ItemGroup>

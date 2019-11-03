@@ -21,40 +21,39 @@ namespace SauronEye {
         private List<string> Results;
         private bool searchContents;
         private bool SystemDirs;
-        private const int MAX_PATH = 260;
         private IEnumerable<string> FilesFilteredOnExtension;
+        private RegexSearch RegexSearcher;
 
-        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs) {
+        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex) {
             this.SearchDirectory = d;
             this.Filetypes = f;
             this.Keywords = k;
             this.Results = new List<string>();
             this.searchContents = s;
             this.SystemDirs = systemdirs;
+            this.RegexSearcher = regex;
         }
 
 
         public void Search() {
-                if (Directory.Exists(SearchDirectory)) {
-                    //Console.WriteLine("Searching dir: " + SearchDirectory);
-                    //var d = new DirectoryInfo(SearchDirectory);
+            if (Directory.Exists(SearchDirectory)) {
 
-                    FilesFilteredOnExtension = EnumerateFiles(SearchDirectory, "*.*", SearchOption.AllDirectories);
-                    foreach (string filepath in FilesFilteredOnExtension) {
-                        if (ContainsKeyword(Path.GetFileName(filepath))) {
-                            Results.Add(filepath);
-                        }
+                FilesFilteredOnExtension = EnumerateFiles(SearchDirectory, "*.*", SearchOption.AllDirectories);
+                foreach (string filepath in FilesFilteredOnExtension) {
+                    if (ContainsKeyword(Path.GetFileName(filepath))) {
+                        Results.Add(filepath);
                     }
-                    foreach (string i in Results) {
-                        Console.WriteLine("[+] {0}", i);
-                    }
+                }
+                foreach (string i in Results) {
+                    Console.WriteLine("[+] {0}", i);
+                }
 
-                    // Now search contents
-                    if (searchContents) {
-                        Console.WriteLine("[*] Done searching file system, now searching contents");
-                        var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords);
-                        contentsSearcher.Search();
-                    }
+                // Now search contents
+                if (searchContents) {
+                    Console.WriteLine("[*] Done searching file system, now searching contents");
+                    var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords, RegexSearcher);
+                    contentsSearcher.Search();
+                }
             }
         }
 
@@ -75,12 +74,19 @@ namespace SauronEye {
         }
 
         private bool ContainsKeyword(string fname) {
-            foreach (string keyword in Keywords) {
-                if (fname.ToLower().Contains(keyword.ToLower())) {
-                    return true;
+            if (Keywords.Count > 0) {
+                foreach (string keyword in Keywords) {
+                    //if (fname.ToLower().Contains(keyword.ToLower())) {
+                    if (RegexSearcher.checkForRegexPatterns(fname.ToLower())) {
+                        return true;
+                    }
                 }
+                return false;
+            } else {
+                // No Keywords provided, we want to match on anything.
+                return true;
             }
-            return false;
+
         }
 
         // Returns true iff path is not %WINDIR% or %APPDATA% or not Program Files when SystemDir is False.
@@ -108,11 +114,12 @@ namespace SauronEye {
         private List<string> Keywords;
         private int MAX_FILE_SIZE = 1000000; // 1MB
         private static readonly string[] OfficeExtentions = { ".doc", ".docx", ".xls", ".xlsx" };
+        private RegexSearch RegexSearcher;
 
-
-        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords) {
+        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords, RegexSearch regex) {
             this.Directories = directories;
             this.Keywords = keywords;
+            this.RegexSearcher = regex;
         }
 
         // Searches the contents of filtered files. Does not care about exceptions.
@@ -175,7 +182,8 @@ namespace SauronEye {
         // Return true iff contents contain any of the keywords.
         private bool ContainsAny(string contents) {
             foreach (string keyword in Keywords) {
-                if (contents.Contains(keyword)) {
+                //if (contents.Contains(keyword)) {
+                if (RegexSearcher.checkForRegexPatterns(contents.ToLower())) {
                     return true;
                 }
             }
@@ -193,4 +201,6 @@ namespace SauronEye {
 
 
     }
+
+
 }

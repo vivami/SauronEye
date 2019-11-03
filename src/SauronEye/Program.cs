@@ -15,6 +15,7 @@ namespace SauronEye {
         private static List<string> Directories, FileTypes, Keywords;
         private static bool SearchContents;
         private static bool SystemDirs;
+        private static RegexSearch regexSearcher;
         static void Main(string[] args) {
             Console.WriteLine("\n\t === SauronEye === \n");
             Directories = new List<string>();
@@ -24,8 +25,8 @@ namespace SauronEye {
             SystemDirs = false;
             parseArguments(args);
             Console.WriteLine("Directories to search: " + string.Join(", ", Directories));
-            Console.WriteLine("For file types:" + string.Join(", ", FileTypes));
-            Console.WriteLine("Containing:" + string.Join(", ", Keywords));
+            Console.WriteLine("For file types: " + string.Join(", ", FileTypes));
+            Console.WriteLine("Containing: " + string.Join(", ", Keywords));
             Console.WriteLine("Search contents: " + SearchContents.ToString());
             Console.WriteLine("Search Program Files directories: " + SystemDirs.ToString() + "\n");
             Stopwatch sw = new Stopwatch();
@@ -35,13 +36,13 @@ namespace SauronEye {
             var options = new ParallelOptions { MaxDegreeOfParallelism = Directories.Count };
             Parallel.ForEach(Directories, options, (dir) => {
                 Console.WriteLine("Searching in parallel: " + dir);
-                var fileSystemSearcher = new FSSearcher(dir, FileTypes, Keywords, SearchContents, SystemDirs);
+                var fileSystemSearcher = new FSSearcher(dir, FileTypes, Keywords, SearchContents, SystemDirs, regexSearcher);
                 fileSystemSearcher.Search();
                         
             });
             sw.Stop();
 
-            Console.WriteLine("\n Time elapsed = {0}", sw.Elapsed);
+            Console.WriteLine("\n Done. Time elapsed = {0}", sw.Elapsed);
 
             if (Debugger.IsAttached)
                 Console.ReadKey();
@@ -101,6 +102,7 @@ namespace SauronEye {
             Directories = Directories.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             FileTypes = FileTypes.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             Keywords = Keywords.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
+            regexSearcher = new RegexSearch(Keywords);
             return;
         }
         
