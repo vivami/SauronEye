@@ -37,7 +37,7 @@ namespace SauronEye {
         public void Search() {
                 if (Directory.Exists(SearchDirectory)) {
                     //Console.WriteLine("Searching dir: " + SearchDirectory);
-                    DirectoryInfo dirInfo = new DirectoryInfo(SearchDirectory);
+                    //var d = new DirectoryInfo(SearchDirectory);
 
                     FilesFilteredOnExtension = EnumerateFiles(SearchDirectory, "*.*", SearchOption.AllDirectories);
                     foreach (string filepath in FilesFilteredOnExtension) {
@@ -52,8 +52,8 @@ namespace SauronEye {
                     // Now search contents
                     if (searchContents) {
                         Console.WriteLine("[*] Done searching file system, now searching contents");
-                        ContentsSearcher s = new ContentsSearcher(FilesFilteredOnExtension, Keywords);
-                        s.Search();
+                        var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords);
+                        contentsSearcher.Search();
                     }
             }
         }
@@ -104,52 +104,52 @@ namespace SauronEye {
 
     class ContentsSearcher {
 
-        private static IEnumerable<string> Directories;
-        private static List<string> Keywords;
-        private const int MAX_FILE_SIZE = 1000000; // 1MB
+        private IEnumerable<string> Directories;
+        private List<string> Keywords;
+        private int MAX_FILE_SIZE = 1000000; // 1MB
         private static readonly string[] OfficeExtentions = { ".doc", ".docx", ".xls", ".xlsx" };
 
 
-        public ContentsSearcher(IEnumerable<string> d, List<string> k) {
-            Directories = d;
-            Keywords = k;
+        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords) {
+            this.Directories = directories;
+            this.Keywords = keywords;
         }
 
         // Searches the contents of filtered files. Does not care about exceptions.
         public void Search() {
             foreach (String dir in Directories) { 
-                FileInfo fi = new FileInfo(dir);
+                var fileInfo = new FileInfo(dir);
                 string fileContents;
-                if (fi.Length < MAX_FILE_SIZE) {
-                    if (IsOfficeExtension(fi.Extension)) {
+                if (fileInfo.Length < MAX_FILE_SIZE) {
+                    if (IsOfficeExtension(fileInfo.Extension)) {
                         try {
-                            TextReader reader = new FilterReader(fi.FullName);
+                            var reader = new FilterReader(fileInfo.FullName);
                             fileContents = reader.ReadToEnd();
-                            CheckForKeywords(fileContents, fi);
-                        } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fi.FullName); }
+                            CheckForKeywords(fileContents, fileInfo);
+                        } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName); }
                     } else {
                         //normal file
                         try {
-                            CheckForKeywords(File.ReadAllText(fi.FullName), fi);
-                        } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fi.FullName); }
+                            CheckForKeywords(File.ReadAllText(fileInfo.FullName), fileInfo);
+                        } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName); }
 
                     }
                 } else {
-                    Console.WriteLine("[-] File exceeds 1MB file size {0}", fi.FullName);
+                    Console.WriteLine("[-] File exceeds 1MB file size {0}", fileInfo.FullName);
                 }
             }
         }
 
         // Prints the file and keyword iff a keyword is found in its contents.
-        private void CheckForKeywords(string contents, FileInfo fi) {
+        private void CheckForKeywords(string contents, FileInfo fileInfo) {
             try {
                 // Office docs are weird, do not contains newlines when extracted.
                 var found = HasKeywordInLargeString(contents);
                 if (!found.Equals("")) {
-                    Console.WriteLine("[+] {0}: \n\t {1}\n", fi.FullName, found);
+                    Console.WriteLine("[+] {0}: \n\t {1}\n", fileInfo.FullName, found);
                 }
             } catch (Exception e) {
-                Console.WriteLine("[!] The {0} could not be read.", fi.FullName);
+                Console.WriteLine("[!] The {0} could not be read.", fileInfo.FullName);
             }
         }
 

@@ -35,8 +35,8 @@ namespace SauronEye {
             var options = new ParallelOptions { MaxDegreeOfParallelism = Directories.Count };
             Parallel.ForEach(Directories, options, (dir) => {
                 Console.WriteLine("Searching in parallel: " + dir);
-                var s = new FSSearcher(dir, FileTypes, Keywords, SearchContents, SystemDirs);
-                s.Search();
+                var fileSystemSearcher = new FSSearcher(dir, FileTypes, Keywords, SearchContents, SystemDirs);
+                fileSystemSearcher.Search();
                         
             });
             sw.Stop();
