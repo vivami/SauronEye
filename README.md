@@ -2,7 +2,7 @@
 SauronEye is a search tool built to aid red teams in finding files containing specific keywords. 
 
 **Features**:
-- Search mulitple (network) drives
+- Search multiple (network) drives
 - Search contents of files
 - Search contents of Microsoft Office files (`.doc`, `.docx`, `.xls`, `.xlsx`)
 - Search multiple drives multi-threaded for increased performance
@@ -35,4 +35,7 @@ Time elapsed=00:00:06.4837851
 
 ```
 
-Note: SauronEye does not search `%WINDIR%` and `%APPDATA%`. Use the `-SystemDirs` flag to search the contents of `Program Files*`.
+### Notes
+SauronEye does not search `%WINDIR%` and `%APPDATA%`. 
+Use the `-SystemDirs` flag to search the contents of `Program Files*`.
+SauronEye relies on multi-threading libraries only available from .NET 4.0, and so requires >= .NET 4.0 to run.
