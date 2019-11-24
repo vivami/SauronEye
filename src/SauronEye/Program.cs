@@ -16,8 +16,7 @@ namespace SauronEye {
         private static bool SystemDirs;
         private static RegexSearch regexSearcher;
 
-        static void Main(string[] args)
-        {
+        static void Main(string[] args) {
             Console.WriteLine("\n\t === SauronEye === \n");
             Directories = new List<string>();
             FileTypes = new List<string>();
