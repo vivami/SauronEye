@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using EPocalipse.IFilter;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-using System.Management;
 
 namespace SauronEye {
     class Program {
@@ -133,15 +130,7 @@ namespace SauronEye {
                     FileTypes.Add(s);
                 }
             }
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(
-            "root\\CIMV2",
-            "SELECT * FROM Win32_MappedLogicalDisk");
-            foreach (ManagementObject drive in searcher.Get())
-            {
-                Console.WriteLine(Regex.Match(
-                    drive["ProviderName"].ToString(),
-                    @"\\\\([^\\]+)").Groups[1]);
-            }
+
             regexSearcher = new RegexSearch(Keywords);
         }
 
