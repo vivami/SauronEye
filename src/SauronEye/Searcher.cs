@@ -166,12 +166,19 @@ namespace SauronEye {
             var splitted = keywordLine.Split(' ');
             for (int i = 0; i < splitted.Length; i++) {
                 if (ContainsAny(splitted[i].ToLower())) {
-                    if (i + 2 <= splitted.Length) {
+                    if (i >= 2 && i + 2 <= splitted.Length) {
+                        // word1 word2 keyword word3 word4
                         res = Regex.Replace(string.Join(" ", splitted, i - 2, 5), @"\t|\n|\r", " "); 
                         //res = splitted[i - 2] + splitted[i - 1] + splitted[i] + splitted[i + 1] + splitted[i + 2];
+                    } else if (i + 2 <= splitted.Length) {
+                        // keyword word1 word2
+                        res = Regex.Replace(string.Join(" ", splitted, i, 2) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ");
+                    } else if (i >= 2) {
+                        // word1 word2 keyword
+                        res = Regex.Replace(string.Join(" ", splitted, i - 2 , 3) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ");
                     } else {
-                        // this is ugly: res = "two words + keyword + two words" minus newlines because that is ugly.
-                        res = Regex.Replace(string.Join(" ", splitted, i - 2, i) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ");
+
+                        res = Regex.Replace(string.Join(" ", splitted, i, 1) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ");
                     }
                 }
             }
