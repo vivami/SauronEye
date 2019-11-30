@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using EPocalipse.IFilter;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
@@ -13,17 +11,23 @@ namespace SauronEye {
     class Program {
 
         private static List<string> Directories, FileTypes, Keywords;
+        private static string[] DefaultFileTypes, DefaultKeywords;
         private static bool SearchContents;
         private static bool SystemDirs;
         private static RegexSearch regexSearcher;
+
         static void Main(string[] args) {
             Console.WriteLine("\n\t === SauronEye === \n");
             Directories = new List<string>();
             FileTypes = new List<string>();
             Keywords = new List<string>();
-            SearchContents = false;
+            DefaultFileTypes = new string[] { ".docx", ".txt"};
+            DefaultKeywords = new string[] { "pass*", "wachtw*" };
+            SearchContents = true;
             SystemDirs = false;
+
             parseArguments(args);
+
             Console.WriteLine("Directories to search: " + string.Join(", ", Directories));
             Console.WriteLine("For file types: " + string.Join(", ", FileTypes));
             Console.WriteLine("Containing: " + string.Join(", ", Keywords));
@@ -38,7 +42,7 @@ namespace SauronEye {
                 Console.WriteLine("Searching in parallel: " + dir);
                 var fileSystemSearcher = new FSSearcher(dir, FileTypes, Keywords, SearchContents, SystemDirs, regexSearcher);
                 fileSystemSearcher.Search();
-                        
+
             });
             sw.Stop();
 
@@ -47,7 +51,6 @@ namespace SauronEye {
             if (Debugger.IsAttached)
                 Console.ReadKey();
         }
-
 
         // Implemented my own args parser. This is probably a very bad idea...
         // Transforms: 
@@ -102,10 +105,33 @@ namespace SauronEye {
             Directories = Directories.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             FileTypes = FileTypes.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             Keywords = Keywords.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
-            regexSearcher = new RegexSearch(Keywords);
+
+            //If any args are still empty, use default
+            setDefaultArgs();
             return;
         }
-        
+        private static void setDefaultArgs() {
+            if (Directories.Count == 0) {
+                foreach (DriveInfo d in DriveInfo.GetDrives()) {
+                    Directories.Add(d.Name);
+                }
+            }
+
+            if(Keywords.Count == 0) {
+                foreach (string s in DefaultKeywords) {
+                    Keywords.Add(s);
+                }
+            }
+
+            if (FileTypes.Count == 0) {
+                foreach (string s in DefaultFileTypes) {
+                    FileTypes.Add(s);
+                }
+            }
+
+            regexSearcher = new RegexSearch(Keywords);
+        }
+
         private static bool isNullOrWhiteSpace(string s) {
             return String.IsNullOrEmpty(s) || s.Trim().Length == 0;
         }
