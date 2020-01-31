@@ -70,6 +70,10 @@ namespace SauronEye {
                 return dirFiles.Concat(Directory.EnumerateFiles(path, searchPattern));
             } catch (UnauthorizedAccessException ex) {
                 return Enumerable.Empty<string>();
+            } catch (PathTooLongException ex) {
+                // Microsoft solution: https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-enumerate-directories-and-files
+                Console.WriteLine("[!] {0} is too long. Continuing with next directory.", path);
+                return Enumerable.Empty<string>();
             }
         }
 
@@ -124,25 +128,32 @@ namespace SauronEye {
 
         // Searches the contents of filtered files. Does not care about exceptions.
         public void Search() {
-            foreach (String dir in Directories) { 
-                var fileInfo = new FileInfo(dir);
-                string fileContents;
-                if (fileInfo.Length < MAX_FILE_SIZE) {
-                    if (IsOfficeExtension(fileInfo.Extension)) {
-                        try {
-                            var reader = new FilterReader(fileInfo.FullName);
-                            fileContents = reader.ReadToEnd();
-                            CheckForKeywords(fileContents, fileInfo);
-                        } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName); }
-                    } else {
-                        //normal file
-                        try {
-                            CheckForKeywords(File.ReadAllText(fileInfo.FullName), fileInfo);
-                        } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName); }
+            foreach (String dir in Directories) {
+                try {
+                    var fileInfo = new FileInfo(dir);
+                    string fileContents;
+                    if (fileInfo.Length < MAX_FILE_SIZE) {
+                        if (IsOfficeExtension(fileInfo.Extension)) {
+                            try {
+                                var reader = new FilterReader(fileInfo.FullName);
+                                fileContents = reader.ReadToEnd();
+                                CheckForKeywords(fileContents, fileInfo);
+                            } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName); }
+                        } else {
+                            //normal file
+                            try {
+                                CheckForKeywords(File.ReadAllText(fileInfo.FullName), fileInfo);
+                            } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName); }
 
+                        }
+                    } else {
+                        Console.WriteLine("[-] File exceeds 1MB file size {0}", fileInfo.FullName);
                     }
-                } else {
-                    Console.WriteLine("[-] File exceeds 1MB file size {0}", fileInfo.FullName);
+                } catch (PathTooLongException ex) {
+                    Console.WriteLine("[-] Path {0} is too long. Skipping.", dir);
+                    continue;
+                } catch (Exception e) {
+                    Console.WriteLine("[-] Some unknown exception {0} occured while processing {1}. Continuing with the next directory.", e.Message, dir);
                 }
             }
         }
