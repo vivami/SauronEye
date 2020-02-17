@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace SauronEye {
 
-    class RegexSearch {
+    public class RegexSearch {
         private List<string> Keywords;
         private List<Regex> Regexes;
 

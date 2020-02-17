@@ -328,3 +328,9 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Too long paths test files
+src/SauronEyeTests/testfiles/
+
+# Test results
+src/TestResults/
