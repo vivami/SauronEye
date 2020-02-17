@@ -17,13 +17,13 @@ It's also quite fast, can do 50k files, totaling 1,3 TB on a network drive in un
 `SauronEye.exe -Dirs C:\, \\SOMENETWORKDRIVE\C$ -FileTypes .txt,.bat,.docx, .conf -Contents -Keywords password,pass* -SystemDirs` 
 
 ```
-C:\>SauronEye.exe -Dirs C:\Users\vincent\Desktop\ -Keywords wacht*, pass* -Filetypes .txt, .doc, .docx, .xls -Contents
+C:\>SauronEye.exe -Dirs C:\Users\vincent\Desktop\ -Keywords wacht, pass -Filetypes .txt, .doc, .docx, .xls -Contents
 
 	=== SauronEye ===
 
 Directories to search: c:\users\vincent\desktop\
 For file types: .txt, .doc, .docx, .xls
-Containing: wacht*, pass*
+Containing: wacht, pass
 Search contents: True
 Search Program Files directories: False
 
@@ -47,4 +47,4 @@ Searching in parallel: c:\users\vincent\desktop\
 ### Notes
 SauronEye does not search `%WINDIR%` and `%APPDATA%`. 
 Use the `-SystemDirs` flag to search the contents of `Program Files*`.
-SauronEye relies on multi-threading libraries only available from .NET 4.0, and so requires >= .NET 4.0 to run.
+SauronEye relies on functionality only available from .NET 4.7.2, and so requires >= .NET 4.7.2 to run.
