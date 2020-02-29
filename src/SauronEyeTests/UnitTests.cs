@@ -9,16 +9,6 @@ namespace SauronEyeTests {
     [TestClass]
     public class ArgumentParserTester {
 
-        [TestMethod]
-        public void TestExcessiveWhitespace() {
-            var ArgumentParser = new SauronEye.ArgumentParser();
-            var input = new string[12] { @"-Dirs", @" ", " ", @"C:\,      ", @"  ", @"D:", @"-FILETYPES", @".txt,.bat", @"      ", @",.conf", "-Contents", "-keywords test" };
-            var expected = new List<string>() { @"c:\", @"d:" };
-            ArgumentParser.ParseArguments(input);
-            CollectionAssert.AreEqual(ArgumentParser.Directories, expected);
-
-        }
-
         // Unzip src/SauronEyeTests/testfiles.zip first
         [TestMethod]
         public void TestLongPaths() {
@@ -43,6 +33,28 @@ namespace SauronEyeTests {
 
             Assert.AreEqual(currentConsoleOut, Console.Out);
 
+        }
+
+        [TestMethod]
+        public void TestHasKeywordInLargeString() {
+            var Directories = new List<string> { "" };
+            var Regex = new SauronEye.RegexSearch(new List<string> { "pass" });
+            var Keywords = new List<string> { "pass" };
+            var ContentSearcher = new SauronEye.ContentsSearcher(Directories, Keywords, Regex);
+
+            var testCases = new Dictionary<string, string>();
+            testCases.Add("this is a long string containing a password", "...g containing a password... ");
+            testCases.Add("password is this yet another", "...password is this ye... ");
+            testCases.Add("password", "...password... ");
+            testCases.Add("pssword", "");
+            testCases.Add("another password in this test makes it to password twice", "...another password in this te... ...st makes it to password twice... ");
+            testCases.Add("password begin and at the end password", "...password begin and ... ...and at the end password... ");
+            testCases.Add("long path before the password=wetiife", "...ath before the password=wetiife... ");
+            testCases.Add("this is anther password testcase that is a normal one", "...this is anther password testcase t... ");
+
+            foreach (KeyValuePair<string, string> kvp in testCases) {
+                Assert.AreEqual(kvp.Value, ContentSearcher.HasKeywordInLargeString2(kvp.Key));
+            }
         }
 
 

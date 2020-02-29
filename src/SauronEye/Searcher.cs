@@ -175,7 +175,7 @@ namespace SauronEye {
         }
 
         // Checks if a string contains any of the keywords we're looking for and returns keyword incl. limited context
-        private string HasKeywordInLargeString(string keywordLine) {
+        public string HasKeywordInLargeString_old(string keywordLine) {
             var res = "";
             var splitted = keywordLine.Split(' ');
             for (int i = 0; i < splitted.Length; i++) {
@@ -198,6 +198,23 @@ namespace SauronEye {
                         //res += string.Join(" ", splitted, i, 1) + string.Join(" ", splitted.Skip(i));
                         res += Regex.Replace(string.Join(" ", splitted, i, 1) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ") + ", ";
                     }
+                }
+            }
+            return res;
+        }
+
+        public string HasKeywordInLargeString(string keywordLine) {
+            var res = "";
+            int buffer = 15;
+            foreach (string keyword in Keywords) {
+                int location = keywordLine.IndexOf(keyword);
+                while (location != -1) {
+                    // take buffer before and after:
+                    int start = location - Math.Min(buffer, location); // don't take before start
+                    int end = location + keyword.Length
+                            + Math.Min(buffer, keywordLine.Length - location - keyword.Length); // don't take after end
+                    res += "..." + keywordLine.Substring(start, end - start) + "... ";
+                    location = keywordLine.IndexOf(keyword, location + 1);
                 }
             }
             return res;
