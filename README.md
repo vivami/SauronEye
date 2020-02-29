@@ -14,10 +14,10 @@ It's also quite fast, can do 50k files, totaling 1,3 TB on a network drive in un
 
 ### Usage
 
-`SauronEye.exe -Dirs C:\, \\SOMENETWORKDRIVE\C$ -FileTypes .txt,.bat,.docx, .conf -Contents -Keywords password,pass* -SystemDirs` 
+`SauronEye.exe --directories C:\ \\SOMENETWORKDRIVE\C$ --filetypes .txt .bat .docx .conf --contents --keywords password pass*` 
 
 ```
-C:\>SauronEye.exe -Dirs C:\Users\vincent\Desktop\ -Keywords wacht*, pass* -Filetypes .txt, .doc, .docx, .xls -Contents
+C:\>SauronEye.exe -d C:\Users\vincent\Desktop\ -k wacht* pass* -f .txt .doc .docx .xls -c
 
 	=== SauronEye ===
 
@@ -44,7 +44,25 @@ Searching in parallel: c:\users\vincent\desktop\
  Done. Time elapsed = 00:00:00.3114729
 ```
 
+```
+C:\>SauronEye.exe --help
+
+         === SauronEye ===
+
+Usage: SauronEye.exe [OPTIONS]+ argument
+Search directories for files containing specific keywords.
+
+Options:
+  -d, --directories=VALUE    Directories to search
+  -f, --filetypes=VALUE      Filetypes to search for/in
+  -k, --keywords=VALUE       Keywords to search for
+  -c, --contents             Search file contents
+  -s, --systemdirs           Search in filesystem directories %APPDATA% and %
+                               WINDOWS%
+  -h, --help                 Show help
+```
+
 ### Notes
 SauronEye does not search `%WINDIR%` and `%APPDATA%`. 
-Use the `-SystemDirs` flag to search the contents of `Program Files*`.
+Use the `--systemdirs` flag to search the contents of `Program Files*`.
 SauronEye relies on multi-threading libraries only available from .NET 4.0, and so requires >= .NET 4.0 to run.

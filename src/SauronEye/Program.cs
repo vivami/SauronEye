@@ -17,7 +17,7 @@ namespace SauronEye {
 
             var ArgumentParser = new ArgumentParser();
 
-            ArgumentParser.ParseArguments(args);
+            ArgumentParser.ParseArgumentsOptions(args);
 
             Console.WriteLine("Directories to search: " + string.Join(", ", ArgumentParser.Directories));
             Console.WriteLine("For file types: " + string.Join(", ", ArgumentParser.FileTypes));

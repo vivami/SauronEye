@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mono.Options;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,88 +25,90 @@ namespace SauronEye {
             SystemDirs = false;
         }
 
-        // Implemented my own args parser. This is probably a very bad idea...
-        // Transforms: 
-        // -Dirs C:\,D:\,\\NLDOMFS\testing\ -Filetype .txt, .ini,.conf , .bat
-        // To:
-        // List<string>{ "C:\", "D:\", "\\NLDOMFS\testing\" } and List<string>{ ".txt", ".ini", ".conf", ".bat" }
-        public void ParseArguments(string[] args) {
-            for (var arg = 0; arg < args.Length;) {
-                if (args[arg].StartsWith("-")) {
-                    switch (args[arg].ToLower()) {
-                        case "-dirs": {
-                                if (args[arg + 1].ToLower().Equals("-dirs")) { arg++; break; }
-                                while (arg + 1 != args.Length && !args[arg + 1].StartsWith("-")) {
-                                    Directories.AddRange(strimAndSplit(args[arg + 1].ToLower()));
-                                    arg++;
-                                }
-                            }
+        // Parses the arguments passed to SauronEye, using Mono.Options
+        public void ParseArgumentsOptions(string[] args) {
+            var shouldShowHelp = false;
+            string currentParameter = "";
+            var options = new OptionSet(){
+                { "d|directories=", "Directories to search", v => {
+                    Directories.Add(v);
+                    currentParameter = "d";
+                } },
+                { "f|filetypes=","Filetypes to search for/in", v => {
+                    FileTypes.Add(v);
+                    currentParameter = "f";
+                } },
+                { "k|keywords=","Keywords to search for", v => {
+                    Keywords.Add(v);
+                    currentParameter = "k";
+                } },
+                { "c|contents","Search file contents", c => SearchContents = c != null},
+                { "s|systemdirs","Search in filesystem directories %APPDATA% and %WINDOWS%", s => SystemDirs = s != null},
+                { "h|help","Show help", h => shouldShowHelp = h != null },
+                { "<>", v => {
+                    switch(currentParameter) {
+                        case "d":
+                            Directories.Add(v);
                             break;
-                        case "-filetypes": {
-                                if (args[arg + 1].ToLower().Equals("-filetype")) { arg++; break; }
-                                while (arg + 1 != args.Length && !args[arg + 1].StartsWith("-")) {
-                                    FileTypes.AddRange(strimAndSplit(args[arg + 1].ToLower()));
-                                    arg++;
-                                }
-                            }
+                        case "f":
+                            FileTypes.Add(v);
                             break;
-                        case "-keywords": {
-                                if (args[arg + 1].ToLower().Equals("-keywords")) { arg++; break; }
-                                while (arg + 1 != args.Length && !args[arg + 1].StartsWith("-")) {
-                                    Keywords.AddRange(strimAndSplit(args[arg + 1].ToLower()));
-                                    arg++;
-                                }
-                            }
+                        case "k":
+                            Keywords.Add(v);
                             break;
-                        case "-contents": {
-                                SearchContents = true;
-                                arg++;
-                            }
-                            break;
-                        case "-systemdirs": {
-                                SystemDirs = true;
-                                arg++;
-                            }
-                            break;
-                        default:
-                            // unknown arg, proceed to next
-                            arg++;
+                        case "":
                             break;
                     }
-                } else {
-                    // increment to next arg
-                    arg++;
-                }
+                }}
+            };
+
+            List<string> extra;
+            try {
+                extra = options.Parse(args);
+            } catch (OptionException e) {
+                Console.Write("SauronEye.exe: ");
+                Console.WriteLine(e.Message);
+                Console.WriteLine("Try 'SauronEye.exe --help' for more information.");
+                System.Environment.Exit(1);
             }
-            // remove empty or duplicate args
+
+            if (shouldShowHelp) {
+                ShowHelp(options);
+                System.Environment.Exit(1);
+            }
+            CheckArgs();
             Directories = Directories.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             FileTypes = FileTypes.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             Keywords = Keywords.Where(s => !isNullOrWhiteSpace(s)).Distinct().ToList();
             regexSearcher = new RegexSearch(Keywords);
-            //If any args are still empty, use default
-            //setDefaultArgs();
             return;
+
         }
-        public void setDefaultArgs() {
+
+        // Checks the input of the args and adds defaults for empty args
+        public void CheckArgs() {
             if (Directories.Count == 0) {
+                Console.WriteLine("[!] No directories entered. Adding all mounted drives.");
                 foreach (DriveInfo d in DriveInfo.GetDrives()) {
                     Directories.Add(d.Name);
                 }
             }
 
             if (Keywords.Count == 0) {
+                Console.WriteLine("[!] No keywords entered. Adding 'wacht' and 'pass' as defaults.");
                 foreach (string s in DefaultKeywords) {
                     Keywords.Add(s);
                 }
             }
 
             if (FileTypes.Count == 0) {
+                Console.WriteLine("[!] No filetypes entered. Adding '.txt' and '.docx' as defaults.");
                 foreach (string s in DefaultFileTypes) {
                     FileTypes.Add(s);
                 }
             }
 
-            
+
         }
 
         private bool isNullOrWhiteSpace(string s) {
@@ -115,6 +118,15 @@ namespace SauronEye {
         // Remove whitespaces before and after ',' and split at ',' afterwards
         private string[] strimAndSplit(string s) {
             return Regex.Replace(s, " *, *", ",").Split(',');
+        }
+
+        private static void ShowHelp(OptionSet p) {
+            Console.WriteLine("Usage: SauronEye.exe [OPTIONS]+ argument");
+            Console.WriteLine("Search directories for files containing specific keywords.");
+            Console.WriteLine();
+            Console.WriteLine("Options:");
+            p.WriteOptionDescriptions(Console.Out);
+
         }
     }
 }
