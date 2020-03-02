@@ -46,19 +46,16 @@ namespace SauronEyeTests {
             testCases.Add("this is a long string containing a password", "...g containing a password... ");
             testCases.Add("password is this yet another", "...password is this ye... ");
             testCases.Add("password", "...password... ");
-            testCases.Add("pssword", "");
+            testCases.Add("not a wachtwoord", "");
             testCases.Add("another password in this test makes it to password twice", "...another password in this te... ...st makes it to password twice... ");
             testCases.Add("password begin and at the end password", "...password begin and ... ...and at the end password... ");
             testCases.Add("long path before the password=wetiife", "...ath before the password=wetiife... ");
             testCases.Add("this is anther password testcase that is a normal one", "...this is anther password testcase t... ");
 
             foreach (KeyValuePair<string, string> kvp in testCases) {
-                Assert.AreEqual(kvp.Value, ContentSearcher.HasKeywordInLargeString2(kvp.Key));
+                Assert.AreEqual(kvp.Value, ContentSearcher.HasKeywordInLargeString(kvp.Key));
             }
         }
-
-
-
     }
 
 

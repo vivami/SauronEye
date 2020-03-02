@@ -33,5 +33,16 @@ namespace SauronEye {
             }
             return res;
         }
+
+        public int GetIndexOfRegexPattern(string word) {
+            var res = -1;
+            foreach (Regex regex in Regexes) {
+                var match = regex.Match(word);
+                if (match.Success) {
+                    return match.Index;
+                }
+            }
+            return res;
+        }
     }
 }

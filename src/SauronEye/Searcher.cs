@@ -175,39 +175,12 @@ namespace SauronEye {
         }
 
         // Checks if a string contains any of the keywords we're looking for and returns keyword incl. limited context
-        public string HasKeywordInLargeString_old(string keywordLine) {
-            var res = "";
-            var splitted = keywordLine.Split(' ');
-            for (int i = 0; i < splitted.Length; i++) {
-                if (ContainsAny(splitted[i].ToLower())) {
-                    if (i >= 2 && i + 2 <= splitted.Length) {
-                        // word1 word2 keyword word3 word4
-                        res += Regex.Replace(string.Join(" ", splitted, i - 2, 4), @"\t|\n|\r", " ");
-                        //res += Regex.Replace(string.Join(" ", splitted, i - 2, 4), @"\t|\n|\r", " ") + ", ";
-                        //res = splitted[i - 2] + splitted[i - 1] + splitted[i] + splitted[i + 1] + splitted[i + 2];
-                    } else if (i + 2 < splitted.Length) {
-                        // keyword word1 word2
-                        res += Regex.Replace(string.Join(" ", splitted, i, 2) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ");
-                        //res += Regex.Replace(string.Join(" ", splitted, i, 2) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ") + ", ";
-                    } else if (i >= 2) {
-                        // word1 word2 keyword
-                        //res += string.Join(" ", splitted, i - 2, 2) + " " + splitted[i];
-                        res += Regex.Replace(string.Join(" ", splitted, i - 2, 2) + " " + splitted[i], @"\t|\n|\r", " ");
-                        //res = Regex.Replace(string.Join(" ", splitted, i - 2, 2) + " " + splitted[i], @"\t|\n|\r", " ") + ", ";
-                    } else {
-                        //res += string.Join(" ", splitted, i, 1) + string.Join(" ", splitted.Skip(i));
-                        res += Regex.Replace(string.Join(" ", splitted, i, 1) + string.Join(" ", splitted.Skip(i)), @"\t|\n|\r", " ") + ", ";
-                    }
-                }
-            }
-            return res;
-        }
-
         public string HasKeywordInLargeString(string keywordLine) {
             var res = "";
             int buffer = 15;
             foreach (string keyword in Keywords) {
-                int location = keywordLine.IndexOf(keyword);
+                //int location = keywordLine.IndexOf(keyword);
+                int location = ContainsAny(keywordLine);
                 while (location != -1) {
                     // take buffer before and after:
                     int start = location - Math.Min(buffer, location); // don't take before start
@@ -222,14 +195,16 @@ namespace SauronEye {
 
 
         // Return true iff contents contain any of the keywords.
-        private bool ContainsAny(string contents) {
-            foreach (string keyword in Keywords) {
+        private int ContainsAny(string contents) {
+            var res = -1;
+            //foreach (string keyword in Keywords) {
                 //if (contents.Contains(keyword)) {
-                if (RegexSearcher.checkForRegexPatterns(contents.ToLower())) {
-                    return true;
+                res = RegexSearcher.GetIndexOfRegexPattern(contents.ToLower());
+                if (res != -1) {
+                    return res;
                 }
-            }
-            return false;
+            //}
+            return res;
         }
 
         private bool IsOfficeExtension(string ext) {

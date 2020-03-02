@@ -94,12 +94,6 @@ namespace SauronEye {
                 }
             }
 
-            if (Keywords.Count == 0) {
-                Console.WriteLine("[!] No keywords entered. Adding 'wacht' and 'pass' as defaults.");
-                foreach (string s in DefaultKeywords) {
-                    Keywords.Add(s);
-                }
-            }
 
             if (FileTypes.Count == 0) {
                 Console.WriteLine("[!] No filetypes entered. Adding '.txt' and '.docx' as defaults.");
