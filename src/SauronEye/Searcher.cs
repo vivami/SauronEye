@@ -23,8 +23,10 @@ namespace SauronEye {
         private bool SystemDirs;
         private IEnumerable<string> FilesFilteredOnExtension;
         private RegexSearch RegexSearcher;
+        private DateTime BeforeDate;
+        private DateTime AfterDate;
 
-        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex) {
+        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate) {
             this.SearchDirectory = d;
             this.Filetypes = f;
             this.Keywords = k;
@@ -32,6 +34,12 @@ namespace SauronEye {
             this.searchContents = s;
             this.SystemDirs = systemdirs;
             this.RegexSearcher = regex;
+            if (beforedate != null) {
+                this.BeforeDate = beforedate;
+            }
+            if (afterdate != null) {
+                this.AfterDate = afterdate;
+            }
         }
 
 
@@ -45,7 +53,14 @@ namespace SauronEye {
                     }
                 }
                 foreach (string i in Results) {
-                    Console.WriteLine("[+] {0}", i);
+                    if (BeforeDate != DateTime.MinValue || AfterDate != DateTime.MinValue) {
+                        if (MatchesLastWrite(i)) {
+                            Console.WriteLine("[+] {0}", i);
+                        }
+                    } else {
+                        Console.WriteLine("[+] {0}", i);
+                    }
+                    
                 }
 
                 // Now search contents
@@ -106,6 +121,18 @@ namespace SauronEye {
                 if (path.ToLower().EndsWith(ext.ToLower())) {
                     return true;
                 }
+            }
+            return false;
+        }
+
+        public bool MatchesLastWrite(string path) {
+            FileInfo fi = new FileInfo(path);
+            var lastmodified = fi.LastWriteTime;
+            if (BeforeDate != DateTime.MinValue && lastmodified.Date < BeforeDate.Date) {
+                return true;
+            }
+            if (AfterDate != DateTime.MinValue && lastmodified.Date > AfterDate.Date) {
+                return true;
             }
             return false;
         }

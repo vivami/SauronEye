@@ -14,6 +14,8 @@ namespace SauronEye {
         public bool SearchContents;
         public bool SystemDirs;
         public RegexSearch regexSearcher;
+        public DateTime BeforeDate;
+        public DateTime AfterDate;
 
         public ArgumentParser() {
             Directories = new List<string>();
@@ -21,8 +23,10 @@ namespace SauronEye {
             Keywords = new List<string>();
             DefaultFileTypes = new string[] { ".docx", ".txt" };
             DefaultKeywords = new string[] { "pass*", "wachtw*" };
-            SearchContents = true;
+            SearchContents = false;
             SystemDirs = false;
+            BeforeDate = DateTime.MinValue;
+            AfterDate = DateTime.MinValue;
         }
 
         // Parses the arguments passed to SauronEye, using Mono.Options
@@ -42,8 +46,10 @@ namespace SauronEye {
                     Keywords.Add(v);
                     currentParameter = "k";
                 } },
-                { "c|contents","Search file contents", c => SearchContents = c != null},
-                { "s|systemdirs","Search in filesystem directories %APPDATA% and %WINDOWS%", s => SystemDirs = s != null},
+                { "c|contents","Search file contents", c =>  SearchContents = c != null },
+                { "b|beforedate=", "Filter files last modified before this date, \n format: yyyy-MM-dd", b => { CheckDate(b, "before"); } },
+                { "a|afterdate=", "Filter files last modified after this date, \n format: yyyy-MM-dd", a => { CheckDate(a, "after"); } },
+                { "s|systemdirs","Search in filesystem directories %APPDATA% and %WINDOWS%", s => SystemDirs = s != null },
                 { "h|help","Show help", h => shouldShowHelp = h != null },
                 { "<>", v => {
                     switch(currentParameter) {
@@ -103,6 +109,38 @@ namespace SauronEye {
             }
 
 
+        }
+
+        private void CheckDate(string date, string whichdate) {
+            try {
+                bool result = false;
+                if (whichdate.Equals("before")) {
+                    result = DateTime.TryParseExact(
+                        date,
+                        "yyyy-MM-dd",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out this.BeforeDate);
+                } else {
+                    result = DateTime.TryParseExact(
+                        date,
+                        "yyyy-MM-dd",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out this.AfterDate);
+                }
+                if (!result) {
+                    Console.WriteLine("[!] Incorrect --{0}date format. Try SauronEye.exe --help", whichdate);
+                    System.Environment.Exit(1);
+                }
+                if (BeforeDate != DateTime.MinValue && AfterDate != DateTime.MinValue) {
+                    Console.WriteLine("[!] Parameters --beforedate and --afterdate are mutually exclusive. Try SauronEye.exe --help");
+                    System.Environment.Exit(1);
+                }
+            } catch (Exception) {
+                Console.WriteLine("[!] Incorrect --{0}date format. Try SauronEye.exe --help", whichdate);
+                System.Environment.Exit(1);
+            }
         }
 
         private bool isNullOrWhiteSpace(string s) {
