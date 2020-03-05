@@ -21,17 +21,19 @@ namespace SauronEye {
         private List<string> Results;
         private bool searchContents;
         private bool SystemDirs;
+        private UInt64 maxFileSizeInKB;
         private IEnumerable<string> FilesFilteredOnExtension;
         private RegexSearch RegexSearcher;
         private DateTime BeforeDate;
         private DateTime AfterDate;
 
-        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate) {
+        public FSSearcher(string d, List<string> f, List<string> k, bool s, UInt64 maxfs, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate) {
             this.SearchDirectory = d;
             this.Filetypes = f;
             this.Keywords = k;
             this.Results = new List<string>();
             this.searchContents = s;
+            this.maxFileSizeInKB = maxfs;
             this.SystemDirs = systemdirs;
             this.RegexSearcher = regex;
             if (beforedate != null) {
@@ -66,7 +68,7 @@ namespace SauronEye {
                 // Now search contents
                 if (searchContents) {
                     Console.WriteLine("[*] Done searching file system, now searching contents");
-                    var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords, RegexSearcher);
+                    var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords, RegexSearcher, this.maxFileSizeInKB);
                     contentsSearcher.Search();
                 }
             }
@@ -149,14 +151,15 @@ namespace SauronEye {
 
         private IEnumerable<string> Directories;
         private List<string> Keywords;
-        private int MAX_FILE_SIZE = 1000000; // 1MB
+        private UInt64 MAX_FILE_SIZE; // 1MB
         private static readonly string[] OfficeExtentions = { ".doc", ".docx", ".xls", ".xlsx" };
         private RegexSearch RegexSearcher;
 
-        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords, RegexSearch regex) {
+        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords, RegexSearch regex, UInt64 maxFileSizeInKB) {
             this.Directories = directories;
             this.Keywords = keywords;
             this.RegexSearcher = regex;
+            this.MAX_FILE_SIZE = maxFileSizeInKB;
         }
 
         // Searches the contents of filtered files. Does not care about exceptions.
@@ -167,7 +170,7 @@ namespace SauronEye {
                     var fileInfo = new FileInfo(NTdir);
 
                     string fileContents;
-                    if (fileInfo.Length < MAX_FILE_SIZE) {
+                    if (Convert.ToUInt64(fileInfo.Length) < this.MAX_FILE_SIZE) {
                         if (IsOfficeExtension(fileInfo.Extension)) {
                             try {
                                 var reader = new FilterReader(fileInfo.FullName);
