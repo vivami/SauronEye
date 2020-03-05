@@ -151,7 +151,7 @@ namespace SauronEye {
 
         private IEnumerable<string> Directories;
         private List<string> Keywords;
-        private UInt64 MAX_FILE_SIZE; // 1MB
+        private UInt64 MAX_FILE_SIZE;
         private static readonly string[] OfficeExtentions = { ".doc", ".docx", ".xls", ".xlsx" };
         private RegexSearch RegexSearcher;
 
@@ -170,7 +170,7 @@ namespace SauronEye {
                     var fileInfo = new FileInfo(NTdir);
 
                     string fileContents;
-                    if (Convert.ToUInt64(fileInfo.Length) < this.MAX_FILE_SIZE) {
+                    if (Convert.ToUInt64(fileInfo.Length) < 1024 * this.MAX_FILE_SIZE) {
                         if (IsOfficeExtension(fileInfo.Extension)) {
                             try {
                                 var reader = new FilterReader(fileInfo.FullName);
@@ -186,7 +186,7 @@ namespace SauronEye {
 
                         }
                     } else {
-                        Console.WriteLine("[-] File exceeds 1MB file size {0}", fileInfo.FullName.Replace(@"\\?\", ""));
+                        Console.WriteLine("[-] File exceeds max file size {0}", fileInfo.FullName.Replace(@"\\?\", ""));
                     }
                 } catch (PathTooLongException ex) {
                     Console.WriteLine("[-] Path {0} is too long. Skipping.", dir);
