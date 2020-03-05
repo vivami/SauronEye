@@ -83,12 +83,18 @@ namespace SauronEye {
 
                 }
                 return dirFiles.Concat(Directory.EnumerateFiles(path, searchPattern).Where(fi => EndsWithExtension(fi)));
+
             } catch (UnauthorizedAccessException ex) {
                 return Enumerable.Empty<string>();
+
             } catch (PathTooLongException ex) {
                 // Microsoft solution: https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-enumerate-directories-and-files
                 Console.WriteLine("[!] {0} is too long. Continuing with next directory.", path);
                 return Enumerable.Empty<string>();
+
+            } catch (System.IO.IOException ex) {
+                return Enumerable.Empty<string>();
+
             }
         }
 
