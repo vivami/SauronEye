@@ -55,7 +55,7 @@ namespace SauronEye {
                 { "b|beforedate=", "Filter files last modified before this date, \n format: yyyy-MM-dd", b => { CheckDate(b, "before"); } },
                 { "a|afterdate=", "Filter files last modified after this date, \n format: yyyy-MM-dd", a => { CheckDate(a, "after"); } },
                 { "s|systemdirs","Search in filesystem directories %APPDATA% and %WINDOWS%", s => SystemDirs = s != null },
-                { "m|macrocheck","Check if 2003 Office files (*.doc and *.xls) contain a VBA macro", s => CheckForMacro = s != null },
+                { "v|vbamacrocheck","Check if 2003 Office files (*.doc and *.xls) contain a VBA macro", s => CheckForMacro = s != null },
                 { "h|help","Show help", h => shouldShowHelp = h != null },
                 { "<>", v => {
                     switch(currentParameter) {

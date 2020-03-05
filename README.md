@@ -5,6 +5,7 @@ SauronEye is a search tool built to aid red teams in finding files containing sp
 - Search multiple (network) drives
 - Search contents of files
 - Search contents of Microsoft Office files (`.doc`, `.docx`, `.xls`, `.xlsx`)
+- Find VBA macro's in old 2003 `.xls` and `.doc` files
 - Search multiple drives multi-threaded for increased performance
 - Supports regular expressions in search keywords
 - Compatible with Cobalt Strike's `execute-assembly`
@@ -17,31 +18,30 @@ It's also quite fast, can do 50k files, totaling 1,3 TB on a network drive in un
 `SauronEye.exe --directories C:\ \\SOMENETWORKDRIVE\C$ --filetypes .txt .bat .docx .conf --contents --keywords password pass*` 
 
 ```
-C:\>SauronEye.exe -d C:\Users\vincent\Desktop\ -k wacht pass -f .txt .doc .docx .xls -c
+         === SauronEye ===
 
-	=== SauronEye ===
-
-Directories to search: c:\users\vincent\desktop\
+Directories to search: C:\Users\vincent\Desktop\
 For file types: .txt, .doc, .docx, .xls
 Containing: wacht, pass
 Search contents: True
+Search Office 2003 files for VBA: True
+Max file size: 1000 KB
 Search Program Files directories: False
-
-Searching in parallel: c:\users\vincent\desktop\
-[+] c:\users\vincent\desktop\test\wachtwoord - Copy (2).txt
-[+] c:\users\vincent\desktop\test\wachtwoord - Copy (3).txt
-[+] c:\users\vincent\desktop\test\wachtwoord - Copy.txt
-[+] c:\users\vincent\desktop\test\wachtwoord.txt
-[+] c:\users\vincent\desktop\pass.pdf
-[+] c:\users\vincent\desktop\pass.txt
-[+] c:\users\vincent\desktop\pass.xls
+Searching in parallel: C:\Users\vincent\Desktop\
+[+] C:\Users\vincent\Desktop\test\wachtwoord - Copy (2).txt
+[+] C:\Users\vincent\Desktop\test\wachtwoord - Copy (3).txt
+[+] C:\Users\vincent\Desktop\test\wachtwoord - Copy.txt
+[+] C:\Users\vincent\Desktop\test\wachtwoord.txt
+[+] C:\Users\vincent\Desktop\pass.txt
 [*] Done searching file system, now searching contents
+[+] C:\Users\vincent\Desktop\pass.txt
+         ...the admin password=admin123...
 
-[+] c:\users\vincent\desktop\test.docx:
-         is a testPassword = "Welcome123"
+[+] C:\Users\vincent\Desktop\test.docx:
+         ...this is a testPassword = "welkom12...
 
 
- Done. Time elapsed = 00:00:00.3114729
+ Done. Time elapsed = 00:00:01.6656911
 ```
 
 ```
@@ -57,8 +57,15 @@ Options:
   -f, --filetypes=VALUE      Filetypes to search for/in
   -k, --keywords=VALUE       Keywords to search for
   -c, --contents             Search file contents
+  -m, --maxfilesize=VALUE    Max file size to search contents in, in kilobytes
+  -b, --beforedate=VALUE     Filter files last modified before this date,
+                                format: yyyy-MM-dd
+  -a, --afterdate=VALUE      Filter files last modified after this date,
+                                format: yyyy-MM-dd
   -s, --systemdirs           Search in filesystem directories %APPDATA% and %
                                WINDOWS%
+  -v, --vbamacrocheck        Check if 2003 Office files (*.doc and *.xls)
+                               contain a VBA macro
   -h, --help                 Show help
 ```
 
