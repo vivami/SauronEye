@@ -22,6 +22,7 @@ namespace SauronEye {
         private List<string> Results;
         private bool searchContents;
         private bool SystemDirs;
+        private UInt64 maxFileSizeInKB;
         private IEnumerable<string> FilesFilteredOnExtension;
         private RegexSearch RegexSearcher;
         private DateTime BeforeDate;
@@ -29,12 +30,14 @@ namespace SauronEye {
         private bool CheckForMacro;
         private OLEExplorer OLXExplorer;
 
-        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate, bool CheckForMacro) {
+
+        public FSSearcher(string d, List<string> f, List<string> k, bool s, UInt64 maxfs, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate, bool CheckForMacro) {
             this.SearchDirectory = d;
             this.Filetypes = f;
             this.Keywords = k;
             this.Results = new List<string>();
             this.searchContents = s;
+            this.maxFileSizeInKB = maxfs;
             this.SystemDirs = systemdirs;
             this.RegexSearcher = regex;
             if (beforedate != null) {
@@ -82,7 +85,7 @@ namespace SauronEye {
                 // Now search contents
                 if (searchContents) {
                     Console.WriteLine("[*] Done searching file system, now searching contents");
-                    var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords, RegexSearcher);
+                    var contentsSearcher = new ContentsSearcher(FilesFilteredOnExtension, Keywords, RegexSearcher, this.maxFileSizeInKB);
                     contentsSearcher.Search();
                 }
             }
@@ -99,12 +102,18 @@ namespace SauronEye {
 
                 }
                 return dirFiles.Concat(Directory.EnumerateFiles(path, searchPattern).Where(fi => EndsWithExtension(fi)));
+
             } catch (UnauthorizedAccessException ex) {
                 return Enumerable.Empty<string>();
+
             } catch (PathTooLongException ex) {
                 // Microsoft solution: https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-enumerate-directories-and-files
                 Console.WriteLine("[!] {0} is too long. Continuing with next directory.", path);
                 return Enumerable.Empty<string>();
+
+            } catch (System.IO.IOException ex) {
+                return Enumerable.Empty<string>();
+
             }
         }
 
@@ -168,14 +177,15 @@ namespace SauronEye {
 
         private IEnumerable<string> Directories;
         private List<string> Keywords;
-        private int MAX_FILE_SIZE = 1000000; // 1MB
+        private UInt64 MAX_FILE_SIZE;
         private static readonly string[] OfficeExtentions = { ".doc", ".docx", ".xls", ".xlsx" };
         private RegexSearch RegexSearcher;
 
-        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords, RegexSearch regex) {
+        public ContentsSearcher(IEnumerable<string> directories, List<string> keywords, RegexSearch regex, UInt64 maxFileSizeInKB) {
             this.Directories = directories;
             this.Keywords = keywords;
             this.RegexSearcher = regex;
+            this.MAX_FILE_SIZE = maxFileSizeInKB;
         }
 
         // Searches the contents of filtered files. Does not care about exceptions.
@@ -186,7 +196,7 @@ namespace SauronEye {
                     var fileInfo = new FileInfo(NTdir);
 
                     string fileContents;
-                    if (fileInfo.Length < MAX_FILE_SIZE) {
+                    if (Convert.ToUInt64(fileInfo.Length) < 1024 * this.MAX_FILE_SIZE) {
                         if (IsOfficeExtension(fileInfo.Extension)) {
                             try {
                                 var reader = new FilterReader(fileInfo.FullName);
@@ -202,7 +212,7 @@ namespace SauronEye {
 
                         }
                     } else {
-                        Console.WriteLine("[-] File exceeds 1MB file size {0}", fileInfo.FullName.Replace(@"\\?\", ""));
+                        Console.WriteLine("[-] File exceeds max file size {0}", fileInfo.FullName.Replace(@"\\?\", ""));
                     }
                 } catch (PathTooLongException ex) {
                     Console.WriteLine("[-] Path {0} is too long. Skipping.", dir);

@@ -13,6 +13,7 @@ namespace SauronEye {
         public string[] DefaultFileTypes, DefaultKeywords;
         public bool SearchContents;
         public bool SystemDirs;
+        public UInt64 MaxFileSizeInKB;
         public RegexSearch regexSearcher;
         public DateTime BeforeDate;
         public DateTime AfterDate;
@@ -25,6 +26,7 @@ namespace SauronEye {
             DefaultFileTypes = new string[] { ".docx", ".txt" };
             DefaultKeywords = new string[] { "pass*", "wachtw*" };
             SearchContents = false;
+            MaxFileSizeInKB = 1024; // In kilobytes: 1MB
             SystemDirs = false;
             BeforeDate = DateTime.MinValue;
             AfterDate = DateTime.MinValue;
@@ -49,6 +51,7 @@ namespace SauronEye {
                     currentParameter = "k";
                 } },
                 { "c|contents","Search file contents", c =>  SearchContents = c != null },
+                { "m|maxfilesize=", "Max file size to search contents in, in kilobytes", m => { CheckInteger(m); } },
                 { "b|beforedate=", "Filter files last modified before this date, \n format: yyyy-MM-dd", b => { CheckDate(b, "before"); } },
                 { "a|afterdate=", "Filter files last modified after this date, \n format: yyyy-MM-dd", a => { CheckDate(a, "after"); } },
                 { "s|systemdirs","Search in filesystem directories %APPDATA% and %WINDOWS%", s => SystemDirs = s != null },
@@ -112,6 +115,14 @@ namespace SauronEye {
             }
 
 
+        }
+
+        private void CheckInteger(string maybeInt) {
+            bool isParsable = UInt64.TryParse(maybeInt, out this.MaxFileSizeInKB);
+
+            if (!isParsable) {
+                Console.WriteLine("[!] MaxFileSize is not an Integer, defaulting to 1MB.");
+            }
         }
 
         private void CheckDate(string date, string whichdate) {

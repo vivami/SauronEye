@@ -24,6 +24,7 @@ namespace SauronEye {
             Console.WriteLine("Containing: " + string.Join(", ", ArgumentParser.Keywords));
             Console.WriteLine("Search contents: " + ArgumentParser.SearchContents.ToString());
             Console.WriteLine("Search Office 2003 files for VBA: " + ArgumentParser.CheckForMacro.ToString());
+            Console.WriteLine("Max file size: " + ArgumentParser.MaxFileSizeInKB.ToString() + " KB");
             Console.WriteLine("Search Program Files directories: " + ArgumentParser.SystemDirs.ToString());
             if (ArgumentParser.BeforeDate != DateTime.MinValue) {
                 Console.WriteLine("Only files before: " + ArgumentParser.BeforeDate.ToString("yyyy-MM-dd") + "\n");
@@ -38,7 +39,9 @@ namespace SauronEye {
             var options = new ParallelOptions { MaxDegreeOfParallelism = ArgumentParser.Directories.Count };
             Parallel.ForEach(ArgumentParser.Directories, options, (dir) => {
                 Console.WriteLine("Searching in parallel: " + dir);
-                var fileSystemSearcher = new FSSearcher(dir, ArgumentParser.FileTypes, ArgumentParser.Keywords, ArgumentParser.SearchContents, ArgumentParser.SystemDirs, ArgumentParser.regexSearcher, ArgumentParser.BeforeDate, ArgumentParser.AfterDate, ArgumentParser.CheckForMacro);
+                
+                var fileSystemSearcher = new FSSearcher(dir, ArgumentParser.FileTypes, ArgumentParser.Keywords, ArgumentParser.SearchContents, ArgumentParser.MaxFileSizeInKB,ArgumentParser.SystemDirs, ArgumentParser.regexSearcher, ArgumentParser.BeforeDate, ArgumentParser.AfterDate, ArgumentParser.CheckForMacro);
+
                 fileSystemSearcher.Search();
 
             });
