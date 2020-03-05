@@ -17,7 +17,7 @@ namespace SauronEyeTests {
             };
             var Regex = new SauronEye.RegexSearch(new List<string> { "pass" } );
             var Keywords = new List<string> { "pass" };
-            var ContentSearcher = new SauronEye.ContentsSearcher(LongDirectories, Keywords, Regex);
+            var ContentSearcher = new SauronEye.ContentsSearcher(LongDirectories, Keywords, Regex, 1024);
             ContentSearcher.Search();
 
             var currentConsoleOut = Console.Out;
@@ -40,7 +40,7 @@ namespace SauronEyeTests {
             var Directories = new List<string> { "" };
             var Regex = new SauronEye.RegexSearch(new List<string> { "pass" });
             var Keywords = new List<string> { "pass" };
-            var ContentSearcher = new SauronEye.ContentsSearcher(Directories, Keywords, Regex);
+            var ContentSearcher = new SauronEye.ContentsSearcher(Directories, Keywords, Regex, 1024);
 
             var testCases = new Dictionary<string, string>();
             testCases.Add("this is a long string containing a password", "...g containing a password... ");
