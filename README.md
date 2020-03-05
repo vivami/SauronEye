@@ -5,7 +5,7 @@ SauronEye is a search tool built to aid red teams in finding files containing sp
 - Search multiple (network) drives
 - Search contents of files
 - Search contents of Microsoft Office files (`.doc`, `.docx`, `.xls`, `.xlsx`)
-- Find VBA macro's in old 2003 `.xls` and `.doc` files
+- Find VBA macros in old 2003 `.xls` and `.doc` files
 - Search multiple drives multi-threaded for increased performance
 - Supports regular expressions in search keywords
 - Compatible with Cobalt Strike's `execute-assembly`
