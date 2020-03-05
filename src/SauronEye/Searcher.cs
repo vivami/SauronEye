@@ -15,6 +15,7 @@ namespace SauronEye {
      */
     class FSSearcher {
 
+        private static readonly string[] Office2003Extentions = { ".doc", ".xls" };
         private string SearchDirectory;
         private List<string> Filetypes;
         private List<string> Keywords;
@@ -25,8 +26,10 @@ namespace SauronEye {
         private RegexSearch RegexSearcher;
         private DateTime BeforeDate;
         private DateTime AfterDate;
+        private bool CheckForMacro;
+        private OLEExplorer OLXExplorer;
 
-        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate) {
+        public FSSearcher(string d, List<string> f, List<string> k, bool s, bool systemdirs, RegexSearch regex, DateTime beforedate, DateTime afterdate, bool CheckForMacro) {
             this.SearchDirectory = d;
             this.Filetypes = f;
             this.Keywords = k;
@@ -40,6 +43,8 @@ namespace SauronEye {
             if (afterdate != null) {
                 this.AfterDate = afterdate;
             }
+            this.CheckForMacro = CheckForMacro;
+            this.OLXExplorer = null;
         }
 
 
@@ -52,10 +57,21 @@ namespace SauronEye {
                         Results.Add(filepath);
                     }
                 }
+                if (CheckForMacro) {
+                    OLXExplorer = new OLEExplorer();
+                }
                 foreach (string i in Results) {
+                    bool containsVBA = false;
+                    if (CheckForMacro && EndsWithOffice2003Extension(i)) {
+                        containsVBA = OLXExplorer.CheckForVBAMacros(i);
+                        if (!containsVBA)
+                            continue;
+                    }
                     if (BeforeDate != DateTime.MinValue || AfterDate != DateTime.MinValue) {
                         if (MatchesLastWrite(i)) {
                             Console.WriteLine("[+] {0}", i);
+                        } else {
+                            continue;
                         }
                     } else {
                         Console.WriteLine("[+] {0}", i);
@@ -116,6 +132,18 @@ namespace SauronEye {
             return (p.Contains(":\\Windows") || (p.Contains(":\\Users") && p.Contains("\\AppData"))) == false;
         }
 
+        public bool MatchesLastWrite(string path) {
+            FileInfo fi = new FileInfo(path);
+            var lastmodified = fi.LastWriteTime;
+            if (BeforeDate != DateTime.MinValue && lastmodified.Date < BeforeDate.Date) {
+                return true;
+            }
+            if (AfterDate != DateTime.MinValue && lastmodified.Date > AfterDate.Date) {
+                return true;
+            }
+            return false;
+        }
+
         private bool EndsWithExtension(string path) {
             foreach (string ext in Filetypes) {
                 if (path.ToLower().EndsWith(ext.ToLower())) {
@@ -125,14 +153,11 @@ namespace SauronEye {
             return false;
         }
 
-        public bool MatchesLastWrite(string path) {
-            FileInfo fi = new FileInfo(path);
-            var lastmodified = fi.LastWriteTime;
-            if (BeforeDate != DateTime.MinValue && lastmodified.Date < BeforeDate.Date) {
-                return true;
-            }
-            if (AfterDate != DateTime.MinValue && lastmodified.Date > AfterDate.Date) {
-                return true;
+        private bool EndsWithOffice2003Extension(string path) {
+            foreach (string OfficeExt in Office2003Extentions) {
+                if ((path.ToLower().EndsWith(OfficeExt))) {
+                    return true;
+                }
             }
             return false;
         }
@@ -224,13 +249,10 @@ namespace SauronEye {
         // Return true iff contents contain any of the keywords.
         private int ContainsAny(string contents) {
             var res = -1;
-            //foreach (string keyword in Keywords) {
-                //if (contents.Contains(keyword)) {
-                res = RegexSearcher.GetIndexOfRegexPattern(contents.ToLower());
-                if (res != -1) {
-                    return res;
-                }
-            //}
+            res = RegexSearcher.GetIndexOfRegexPattern(contents.ToLower());
+            if (res != -1) {
+                return res;
+            }
             return res;
         }
 
