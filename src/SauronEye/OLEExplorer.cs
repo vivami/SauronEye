@@ -16,7 +16,12 @@ namespace SauronEye {
                 // This line throws an exception if there is no _VBA_PROJECT_CUR/VBA/dir stream in the OLE.
                 // _VBA_PROJECT_CUR/VBA/dir has to be in an OLE if it contains a VBA macro
                 // https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-ovba/005bffd7-cd96-4f25-b75f-54433a646b88 
-                CFStream dirStream = cf.RootStorage.GetStorage("_VBA_PROJECT_CUR").GetStorage("VBA").GetStream("dir");
+                if (path.ToLower().EndsWith(".xls")) {
+                    CFStream dirStream = cf.RootStorage.GetStorage("_VBA_PROJECT_CUR").GetStorage("VBA").GetStream("dir");
+                } else {
+                    // .doc
+                    CFStream dirStream = cf.RootStorage.GetStorage("Macros").GetStorage("VBA").GetStream("dir");
+                }
                 return true;
             } catch (Exception) {
                 return false;
