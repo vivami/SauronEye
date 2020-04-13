@@ -45,9 +45,11 @@ Searching in parallel: C:\Users\vincent\Desktop\
 ```
 
 Search multiple directories, including network drives:
+
 `SauronEye.exe --directories C:\ \\SOMENETWORKDRIVE\C$ --filetypes .txt .bat .docx .conf --contents --keywords password pass*` 
 
 Search paths and shares containing spaces:
+
 `SauronEye.exe -d "C:\Users\user\Path with a space" -d "\\SOME NETWORK DRIVE\C$" --filetypes .txt --keywords password pass*`
 
 ```
