@@ -13,11 +13,11 @@ SauronEye is a search tool built to aid red teams in finding files containing sp
 It's also quite fast, can do 50k files, totaling 1,3 TB on a network drive in under a minute (with realistic file filters). Searches a `C:\` (on a cheap SATA SSD) in about 15 seconds.
 
 
-### Usage
-
-`SauronEye.exe --directories C:\ \\SOMENETWORKDRIVE\C$ --filetypes .txt .bat .docx .conf --contents --keywords password pass*` 
+### Usage examples
 
 ```
+C:\>SauronEye.exe -d C:\Users\vincent\Desktop\ --filetypes .txt .doc .docx .xls --contents --keywords password pass* -v`
+
          === SauronEye ===
 
 Directories to search: C:\Users\vincent\Desktop\
@@ -43,6 +43,12 @@ Searching in parallel: C:\Users\vincent\Desktop\
 
  Done. Time elapsed = 00:00:01.6656911
 ```
+
+Search multiple directories, including network drives:
+`SauronEye.exe --directories C:\ \\SOMENETWORKDRIVE\C$ --filetypes .txt .bat .docx .conf --contents --keywords password pass*` 
+
+Search paths and shares containing spaces:
+`SauronEye.exe -d "C:\Users\user\Path with a space" -d "\\SOME NETWORK DRIVE\C$" --filetypes .txt --keywords password pass*`
 
 ```
 C:\>SauronEye.exe --help
