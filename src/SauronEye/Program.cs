@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace SauronEye {
     public class Program {
-
-        private static RegexSearch regexSearcher;
 
         public static void Main(string[] args) {
             Console.WriteLine("\n\t === SauronEye === \n");

@@ -191,9 +191,8 @@ namespace SauronEye {
         // Searches the contents of filtered files. Does not care about exceptions.
         public void Search() {
             foreach (String dir in Directories) {
-                try {
-                    var NTdir = @"\\?\" + dir;
-                    var fileInfo = new FileInfo(NTdir);
+                try { 
+                    var fileInfo = new FileInfo(ConvertToNTPath(dir));
 
                     string fileContents;
                     if (Convert.ToUInt64(fileInfo.Length) < 1024 * this.MAX_FILE_SIZE) {
@@ -202,17 +201,17 @@ namespace SauronEye {
                                 var reader = new FilterReader(fileInfo.FullName);
                                 fileContents = reader.ReadToEnd();
                                 CheckForKeywords(fileContents, fileInfo);
-                            } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName.Replace(@"\\?\", "")); }
+                            } catch (Exception e) { Console.WriteLine("[-] Could not read contents of {0}", PrettyPrintNTPath(fileInfo.FullName)); }
                         } else {
                             //normal file
                             try {
                                 CheckForKeywords(File.ReadAllText(fileInfo.FullName), fileInfo);
                             } catch (Exception e) {
-                                Console.WriteLine("[-] Could not read contents of {0}", fileInfo.FullName.Replace(@"\\?\", "")); }
+                                Console.WriteLine("[-] Could not read contents of {0}", PrettyPrintNTPath(fileInfo.FullName)); }
 
                         }
                     } else {
-                        Console.WriteLine("[-] File exceeds max file size {0}", fileInfo.FullName.Replace(@"\\?\", ""));
+                        Console.WriteLine("[-] File exceeds max file size {0}", PrettyPrintNTPath(fileInfo.FullName));
                     }
                 } catch (PathTooLongException ex) {
                     Console.WriteLine("[-] Path {0} is too long. Skipping.", dir);
@@ -223,16 +222,36 @@ namespace SauronEye {
             }
         }
 
+        // Converts DOS path to NT path to support > 260 chars. Also takes into account UNC for shares with '$' signs in them.
+        private String ConvertToNTPath(String path) {
+            if (path.StartsWith(@"\\")) {
+                return @"\\?\UNC\" + path.TrimStart('\\');
+            } else {
+                return @"\\?\" + path;
+            }
+        }
+
+        // Remove NT prefixes
+        private String PrettyPrintNTPath(String NTPath) {
+            if (NTPath.StartsWith(@"\\?\UNC\")) {
+                return NTPath.Replace(@"\\?\UNC\", @"\\");
+            } else if (NTPath.StartsWith(@"\\?\")) {
+                return NTPath.Replace(@"\\?\", "");
+            } else {
+                return NTPath;
+            }
+        }
+
         // Prints the file and keyword iff a keyword is found in its contents.
         private void CheckForKeywords(string contents, FileInfo fileInfo) {
             try {
                 // Office docs are weird, do not contains newlines when extracted.
                 var found = HasKeywordInLargeString(contents);
                 if (!found.Equals("")) {
-                    Console.WriteLine("[+] {0}: \n\t {1}\n", fileInfo.FullName.Replace(@"\\?\", ""), found);
+                    Console.WriteLine("[+] {0}: \n\t {1}\n", PrettyPrintNTPath(fileInfo.FullName), found);
                 }
             } catch (Exception e) {
-                Console.WriteLine("[!] The {0} could not be read.", fileInfo.FullName.Replace(@"\\?\", ""));
+                Console.WriteLine("[!] The {0} could not be read.", PrettyPrintNTPath(fileInfo.FullName));
             }
         }
 
