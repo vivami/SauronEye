@@ -18,7 +18,7 @@ namespace SauronEye {
 
         private void constructRegexes() {
             foreach (string keyword in Keywords) {
-                Regex regex = new Regex(keyword, RegexOptions.Singleline | RegexOptions.Compiled);
+                Regex regex = new Regex(keyword.ToLower(), RegexOptions.Singleline | RegexOptions.Compiled);
                 Regexes.Add(regex);
             }
         }
