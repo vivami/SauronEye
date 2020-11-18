@@ -191,8 +191,15 @@ namespace SauronEye {
         // Searches the contents of filtered files. Does not care about exceptions.
         public void Search() {
             foreach (String dir in Directories) {
-                try { 
-                    var fileInfo = new FileInfo(ConvertToNTPath(dir));
+                try {
+                    bool usingLegacyPathHandling = false;
+                    AppContext.TryGetSwitch("Switch.System.IO.UseLegacyPathHandling", out usingLegacyPathHandling);
+                    var dirToCheck = dir;
+                    if (!usingLegacyPathHandling)
+                    {
+                        dirToCheck = ConvertToNTPath(dir);
+                    }
+                    var fileInfo = new FileInfo(dirToCheck);
 
                     string fileContents;
                     if (Convert.ToUInt64(fileInfo.Length) < 1024 * this.MAX_FILE_SIZE) {
